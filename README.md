@@ -148,31 +148,22 @@ Adding the selected Census features did not improve geographic generalization. T
 
 ##  Project Visualizations
 
-The following figures should be exported from the executed Jupyter notebook. Only publish visualizations that contain no restricted property-level information.
+### 1. Distribution of Wildfire Risk Scores
 
-### 1. Wildfire Exposure Map
+The chart illustrates the distribution of predicted wildfire risk scores across approximately 500,000 properties.
 
-Geospatial visualization showing the relationship between mapped wildfire perimeters and property exposure.
+Most properties are classified at the lower end of the risk scale, with the largest concentration at risk score 1. Higher-risk scores occur much less frequently.
 
-![Wildfire Exposure Map](visualizations/wildfire_exposure_map.png)
+![Distribution of Wildfire Risk Scores](visualizations/risk_score_distribution.png)
 
-### 2. Wildfire Risk Score Distribution
+### 2. Geographic Distribution of Predicted Wildfire Risk
 
-Distribution of existing wildfire risk scores across the analyzed properties.
+This geographic visualization illustrates the spatial distribution of predicted wildfire risk across U.S. property locations.
 
-![Risk Score Distribution](visualizations/risk_score_distribution.png)
+Higher predicted risk scores appear concentrated in several western regions, particularly California and surrounding areas. The map highlights geographic variation in the supplied risk predictions.
 
-### 3. Predictive Model Comparison
+![Geographic Distribution of Wildfire Risk](visualizations/wildfire_exposure_map.png)
 
-Comparison of risk-score-only, Census-only, and combined-feature predictive performance.
-
-![Model Comparison](visualizations/model_comparison.png)
-
-### 4. Geographic Evaluation
-
-Comparison of overall risk discrimination against more localized geographic evaluation.
-
-![Geographic Evaluation](visualizations/geographic_evaluation.png)
 
 ##  Key Insights
 
