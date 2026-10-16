@@ -1,221 +1,294 @@
-# Wildfire Risk & Geospatial Analysis
 
-**Python · GeoPandas · U.S. Census · MTBS wildfire perimeters · Machine learning evaluation**
+#  Wildfire Risk & Geospatial Analysis
 
-## Project objective — what am I trying to find out?
+**Python | Pandas | GeoPandas | Scikit-learn | U.S. Census | Machine Learning**
 
-**I am evaluating whether existing 2022 wildfire risk scores meaningfully distinguish U.S. properties exposed to mapped wildfires, and whether adding 2020 Census housing and demographic characteristics improves that evaluation.** The original dataset supplies a 1–10 risk score for each property, but **does not supply observed wildfire outcomes**. Rather than assume those scores are accurate, I construct an external exposure indicator by intersecting property coordinates with mapped 2022 wildfire perimeters, then examine how the scores perform.
+A geospatial data analytics project evaluating wildfire risk predictions across **499,992 U.S. property locations** using historical wildfire perimeters, Census tract enrichment, spatial analysis, and geographic model validation.
 
-This is an **evaluation and data-enrichment project**, not an attempt to recreate the original risk-scoring model or predict verified building damage.
+##  Project Overview
 
-## The problem I'm solving
+How reliable are existing wildfire risk scores, and can additional geographic and demographic data improve their predictive performance?
 
-A dataset of predicted risk scores alone cannot establish whether a model works. To evaluate it responsibly, I need an independent observation to compare against, a way to examine geographic differences, and a controlled test of whether additional variables help. Mapped wildfire perimeters provide an imperfect but testable exposure proxy; Census tract data provide an opportunity to investigate additional community-level context.
+This project evaluates pre-existing 2022 wildfire risk scores (1–10) by integrating external wildfire perimeter data and U.S. Census information.
 
-## My objectives and questions
+The project focuses on:
+- Evaluating existing wildfire risk predictions
+- Identifying geographic patterns and wildfire exposure
+- Integrating multiple spatial and tabular datasets
+- Engineering Census-derived housing features
+- Comparing predictive approaches using geographic cross-validation
+- Communicating findings through data visualization
 
-1. **Assess the supplied risk scores.** Clean and profile the property data, inspect score distributions and geographic patterns, and determine whether higher scores are associated with mapped wildfire-perimeter intersection.
-2. **Create an external evaluation target.** Spatially join property locations to 2022 MTBS wildfire perimeters, and compare score discrimination nationally and within more localized fire-affected areas.
-3. **Enrich properties with Census information.** Assign each property to a 2020 Census tract, standardize tract GEOIDs, and create interpretable housing features such as vacancy rate and housing-type shares.
-4. **Test whether enrichment adds predictive value.** Compare the original risk score alone, Census features alone, and both together using county-grouped cross-validation and ROC-AUC.
-5. **Explain what the results do—and do not—show.** Identify geographic variation, limitations of the exposure proxy, and whether the added features improved performance in this experiment.
+> **Data disclosure:** Property-level risk scores and Census attributes were provided for a technical assessment and are not redistributed. This project evaluates the supplied risk scores; it does not claim to have developed the original risk model.
 
-## What I actually do (end-to-end)
+##  Project Architecture
 
-**Property records → quality checks and exploratory analysis → 2022 wildfire perimeter spatial intersection → exposure-based score evaluation → Census tract matching and feature engineering → geographic cross-validation → model comparison and interpretation.**
+```mermaid
+flowchart TD
+    A["Property Risk Dataset<br/>499,992 Records"]
+    B["MTBS Wildfire Perimeters<br/>2022"]
+    C["U.S. Census 2020<br/>Tract Boundaries & Attributes"]
 
-## Executive snapshot
+    A --> D["Data Cleaning & Validation<br/>Python / Pandas"]
+    B --> E["Spatial Data Preparation<br/>GeoPandas"]
+    C --> E
 
-| Dataset / result | Finding |
-|---|---|
-| Scope | 499,992 U.S. property records with pre-existing 2022 risk scores |
-| Exposure proxy | 920 property points inside mapped 2022 wildfire perimeters (0.184%) |
-| Overall risk-score ROC-AUC | Approximately 0.976 |
-| Census tract matching | 499,965 properties matched (~99.99%) |
-| Model comparison | Existing score alone performed best in the recorded county-grouped experiment |
+    D --> F["Spatial Joins & GEOID Matching"]
+    E --> F
 
-**Main takeaway:** The supplied risk score strongly separates properties by the constructed perimeter-intersection target overall, but performance is weaker in some localized comparisons. Adding the selected Census features did not improve held-out county-grouped ROC-AUC in this experiment.
+    F --> G["Wildfire Exposure Proxy<br/>Perimeter Intersection"]
+    F --> H["Feature Engineering<br/>Housing & Census Ratios"]
 
-> **Data-use note:** The original property-level risk dataset and Census attribute extract were supplied for a technical assessment. They are **not redistributed** here. This portfolio documents the analysis and its methods; use of the underlying data requires appropriate authorization. The original risk model was not developed in this project.
+    G --> I["Risk Score Evaluation"]
+    H --> J["Predictive Model Comparison"]
+    I --> J
 
-## Why this matters
-
-Wildfire risk estimates can inform screening, prioritization and further investigation. But an impressive aggregate score does not automatically answer whether the same model distinguishes two properties within the same fire-prone area. This project examines that distinction and tests whether tract-level housing information provides any additional signal. The analysis is exploratory and is not a deployable underwriting or emergency-response tool.
-
-## Analytical questions
-
-1. What do the supplied risk scores look like across properties and geographic areas?
-2. Can mapped 2022 wildfire perimeters provide a useful, albeit imperfect, external outcome for evaluation?
-3. How does model discrimination change when evaluated within fire-affected counties or nearby locations?
-4. Can 2020 Census tract attributes be linked to properties, and do engineered housing features improve held-out geographic performance?
-
-## Data sources
-
-| Source | Role | Availability |
-|---|---|---|
-| Supplied property dataset | Coordinates, property identifiers and pre-existing 2022 risk scores | Restricted; not included |
-| Supplied 2020 Census tract attributes | Housing and demographic enrichment | Restricted extract; not included |
-| [U.S. Census Bureau 2020 cartographic boundaries](https://www.census.gov/geographies/mapping-files/2020/geo/carto-boundary-file.html) | Tract polygons and GEOID matching | Public source |
-| [Monitoring Trends in Burn Severity (MTBS)](https://www.mtbs.gov/) | Mapped wildfire perimeters for 2022 | Public source |
-
-The analysis uses a binary **perimeter-intersection proxy**: a property point is labeled positive if it intersects a mapped 2022 wildfire perimeter. **This does not mean the building was damaged**, and a negative intersection does not establish that the property was safe or undamaged.
-
-## End-to-end analysis workflow
-
-```text
-Existing property risk scores + coordinates
-              |
-      Data quality and EDA
-              |
-2022 MTBS perimeter polygons --> Spatial intersection --> Exposure proxy
-              |
-     Overall + local validation
-              |
-2020 Census tract boundaries --> Point-in-polygon GEOID assignment
-              |
- Census attribute merge + feature engineering
-              |
-County-grouped cross-validation and model comparison
-              |
-      Interpretation and limitations
+    J --> K["County-Grouped Cross-Validation"]
+    K --> L["ROC-AUC & Geographic Performance"]
+    L --> M["Visualizations & Insights"]
 ```
 
-## Technical workflow
+##  Analytical Questions
 
-### 1. Explore and validate the supplied risk scores
+1. How are existing wildfire risk scores distributed across properties and regions?
+2. How well do risk scores distinguish properties intersecting mapped wildfire perimeters?
+3. How does performance change when evaluated within fire-affected counties or nearby locations?
+4. Can Census tract information enrich the property dataset?
+5. Do additional Census-derived features improve predictive performance?
 
-- Checked record counts, missing values, duplicate identifiers and score distributions.
-- Analyzed risk-score patterns across geography and risk categories.
-- Joined property points with 2022 MTBS perimeter polygons to create an external exposure proxy.
-- Evaluated discrimination using ROC-AUC, precision–recall analysis and risk concentration measures.
-- Compared overall performance with performance within fire-affected counties and approximately 25-km neighborhoods, to distinguish broad regional separation from more local ranking ability.
+##  Data Sources
 
-### 2. Enrich properties with Census data
+| Dataset | Purpose | Access |
+|---|---|---|
+| Property risk dataset | Property coordinates and existing 2022 risk scores | Assessment-provided |
+| MTBS wildfire perimeters | Historical wildfire exposure analysis | Public |
+| U.S. Census 2020 tract boundaries | Geographic enrichment and GEOID matching | Public |
+| Census tract attributes | Housing and demographic feature engineering | Assessment-provided |
 
-**Data-integration challenge:** Census GEOIDs are identifiers, not quantities. The notebook identified **15,661** ten-character identifiers and standardized them to 11-character strings with leading-zero padding. It also reconciled property point coordinates in **EPSG:4326** with Census tract boundaries in **EPSG:4269** before the spatial match.
+**Public references:**
+- [Monitoring Trends in Burn Severity (MTBS)](https://www.mtbs.gov/)
+- [U.S. Census Bureau — Cartographic Boundary Files](https://www.census.gov/geographies/mapping-files/2020/geo/carto-boundary-file.html)
 
+##  Technical Workflow
 
-- Worked with point coordinates and Census tract polygons using GeoPandas and coordinate reference system alignment.
-- Assigned tract GEOIDs using point-in-polygon spatial joins, then joined tract-level attributes.
-- Engineered normalized housing features, including **vacancy rate**, **detached housing share**, and **mobile home share**.
-- Examined how those tract characteristics varied across the existing risk-score categories.
+### 1. Data Exploration and Preparation
 
-### 3. Test incremental predictive value
+- Validated approximately 500K property records.
+- Examined missing values, duplicates, and risk score distributions.
+- Prepared geographic coordinates for spatial analysis.
+- Analyzed existing risk score patterns.
 
-- Compared three feature sets: **risk score only**, **Census features only**, and **risk score + Census features**.
-- Used **five-fold county-grouped cross-validation** to reduce leakage from placing properties in the same county in both training and testing.
-- Compared ROC-AUC across held-out groups and inspected permutation importance as a supplementary diagnostic.
+### 2. Geospatial Analysis
 
-## Results
+- Processed historical wildfire perimeter polygons.
+- Aligned coordinate reference systems.
+- Performed point-in-polygon spatial joins.
+- Identified properties intersecting mapped wildfire perimeters.
+- Compared risk discrimination across geographic scales.
 
-### Wildfire exposure and geographic validation
+### 3. Census Data Enrichment
 
-| Measure | Notebook result |
+- Matched properties to Census tract GEOIDs.
+- Joined geographic boundaries with tract-level attributes.
+- Created normalized housing indicators:
+  - Vacancy rate
+  - Detached housing share
+  - Mobile home share
+
+### 4. Model Evaluation
+
+Compared three feature sets:
+
+1. Existing wildfire risk score
+2. Census-derived features
+3. Existing risk score combined with Census features
+
+Applied five-fold county-grouped cross-validation and evaluated ROC-AUC to assess geographic generalization.
+
+### 5. Visualization and Interpretation
+
+Used Python visualization libraries to explore risk distributions, geographic exposure, and predictive performance.
+
+##  Key Results
+
+### Wildfire Exposure Analysis
+
+| Metric | Result |
 |---|---:|
-| Property locations evaluated | **499,992** |
-| Points intersecting mapped 2022 wildfire perimeters | **920 (0.184%)** |
-| Wildfire events represented by positive cases | **33** |
+| Properties analyzed | **499,992** |
+| Properties intersecting wildfire perimeters | **920** |
+| Perimeter-intersection rate | **0.184%** |
+| Wildfire events represented | **33** |
 | Counties containing positive cases | **32** |
-| Overall risk-score ROC-AUC against perimeter intersection | **~0.976** |
-| ROC-AUC within fire-affected counties | **~0.951** |
-| ROC-AUC within approximately 25-km neighborhoods | **~0.798** |
 | Census tract matching rate | **~99.99%** |
 
-The gap between the overall and more localized AUC values is an important finding: separating generally fire-prone regions is not the same as ranking properties accurately within nearby areas.
+### Geographic Risk Evaluation
 
-### Why evaluation scale changes the story
+| Evaluation | ROC-AUC |
+|---|---:|
+| Overall wildfire risk score | **~0.976** |
+| Within fire-affected counties | **~0.951** |
+| Within approximately 25-km neighborhoods | **~0.798** |
 
-The overall ROC-AUC (~0.976) includes differences between geographically distant areas. The lower neighborhood-scale ROC-AUC (~0.798) suggests the task of distinguishing nearby properties is harder. These are different evaluation populations, not interchangeable estimates of property-level accuracy.
+**Finding:** The original risk score demonstrated strong overall discrimination, but performance declined when evaluated at a more localized geographic level.
 
-The project also examined perimeter-edge sensitivity: a 100-metre buffer changed the count of intersecting properties from **920 to 962**, with overall ROC-AUC moving from **0.9761 to 0.9744** in the recorded analysis. This is a useful robustness check, not proof that perimeter data are exact.
+This suggests that identifying broadly fire-prone regions is different from accurately ranking nearby properties.
 
-### County-grouped model comparison
+### Predictive Model Comparison
 
-| Feature set | Mean ROC-AUC | Standard deviation across folds |
+| Feature Set | Mean ROC-AUC | Fold Standard Deviation |
 |---|---:|---:|
-| **Existing risk score only** | **0.9777** | **0.0092** |
-| Census features only | 0.7187 | 0.2046 |
-| Existing risk score + Census features | 0.7016 | 0.2331 |
+| **Existing Risk Score Only** | **0.9777** | 0.0092 |
+| Census Features Only | 0.7187 | 0.2046 |
+| Risk Score + Census Features | 0.7016 | 0.2331 |
 
-**Interpretation:** In this particular county-grouped experiment, the existing score alone performed best. Adding the selected Census features did **not** improve held-out geographic discrimination. Large fold-to-fold variation in the Census-based models limits how broadly this result can be generalized. These comparisons use the constructed 2022 perimeter-intersection outcome, **not verified property damage**.
+**Finding:** The original risk score outperformed the Census-only and combined feature sets in this experiment.
 
-## Practical interpretation
+Adding the selected Census features did not improve geographic generalization. The large variation across folds for Census-based models also limits how broadly these results can be interpreted.
 
-For a decision-maker, the results suggest three priorities: **(1)** validate at the geographic scale where decisions are made, **(2)** avoid treating a perimeter-intersection label as verified property loss, and **(3)** require held-out evidence before accepting new features as improvements. The weaker combined-model result is a finding to investigate, not a reason to conclude that all Census data lack value.
+##  Project Visualizations
 
-## What this project demonstrates
+The following figures should be exported from the executed Jupyter notebook. Only publish visualizations that contain no restricted property-level information.
 
-- **Problem framing:** Found an external, measurable proxy when the supplied data contained no outcome labels.
-- **Data engineering:** Integrated property coordinates, polygon boundaries and tract-level tabular attributes using spatial joins and GEOIDs.
-- **Feature engineering:** Created interpretable ratios from raw housing counts for comparisons across tracts of different sizes.
-- **Evaluation design:** Tested geographic generalization rather than relying only on a random property-level split.
-- **Critical interpretation:** Reported both overall and localized discrimination, and distinguished wildfire exposure from structural loss.
+### 1. Wildfire Exposure Map
 
-## Visualizations
+Geospatial visualization showing the relationship between mapped wildfire perimeters and property exposure.
 
-The executed notebook includes score distributions, geographic patterns, exposure-rate analyses, discrimination metrics and feature comparisons. The README intentionally does not embed property-level maps or records that have not been cleared for public redistribution. After reviewing the outputs, you can add approved, aggregated figures under an `images/` directory and link them here.
+![Wildfire Exposure Map](visualizations/wildfire_exposure_map.png)
 
-## Limitations and next steps
+### 2. Wildfire Risk Score Distribution
 
-- **One year of observations:** A single wildfire season does not establish future predictive performance.
-- **Imperfect outcome:** MTBS mapped perimeter intersection is not a verified property-loss label; unmapped fires and other exposure differences may affect the labels.
-- **Spatial concentration:** Positive cases occur in a limited number of fires and counties, making some geographic folds unstable.
-- **Coarse Census features:** Tract-level housing characteristics may miss parcel-scale differences in fuels, terrain, building materials or defensible space.
-- **Ordinal risk score:** A 1–10 ranking should not be interpreted as a calibrated probability of damage.
+Distribution of existing wildfire risk scores across the analyzed properties.
 
-Potential extensions include multiple fire seasons, verified property-damage records where available, and higher-resolution hazard features such as terrain, vegetation/fuel conditions and wildland–urban interface proximity.
+![Risk Score Distribution](visualizations/risk_score_distribution.png)
 
-## Methodological choices worth discussing in interviews
+### 3. Predictive Model Comparison
 
-| Decision | Why it matters |
+Comparison of risk-score-only, Census-only, and combined-feature predictive performance.
+
+![Model Comparison](visualizations/model_comparison.png)
+
+### 4. Geographic Evaluation
+
+Comparison of overall risk discrimination against more localized geographic evaluation.
+
+![Geographic Evaluation](visualizations/geographic_evaluation.png)
+
+##  Key Insights
+
+**1. Strong overall discrimination**
+
+The existing wildfire risk score achieved approximately 0.976 ROC-AUC against the constructed wildfire perimeter-intersection outcome.
+
+**2. Geographic scale matters**
+
+The decline to approximately 0.798 ROC-AUC in the neighborhood-level evaluation highlights the importance of assessing model performance at multiple geographic scales.
+
+**3. Additional features do not guarantee improvement**
+
+In county-grouped evaluation, Census-derived housing features did not improve predictive performance over the existing risk score.
+
+**4. Data integration enables deeper analysis**
+
+Combining property coordinates, wildfire perimeter polygons, and Census tract information enabled geographic enrichment and feature engineering.
+
+**5. Evaluation methodology matters**
+
+County-grouped cross-validation helps reduce spatial leakage and provides a more meaningful test of geographic generalization than relying solely on random property-level splits.
+
+##  Skills Demonstrated
+
+- Exploratory Data Analysis
+- Python Data Cleaning and Validation
+- Geospatial Data Processing
+- GeoPandas Spatial Joins
+- Coordinate Reference Systems
+- Census GEOID Matching
+- Feature Engineering
+- Predictive Model Evaluation
+- ROC-AUC and Cross-Validation
+- Data Visualization
+- Analytical Interpretation
+
+##  Technology Stack
+
+| Category | Technologies |
 |---|---|
-| Use MTBS perimeters | Creates a testable exposure proxy when the supplied dataset has predictions but no outcome labels |
-| Preserve GEOIDs as strings | Avoids corrupting tract identifiers when leading zeros are present |
-| Align coordinate reference systems | Prevents misleading spatial matches between differently referenced geometries |
-| Normalize housing counts | Makes comparisons across tracts of different population or housing size more meaningful |
-| Group folds by county | Reduces spatial leakage caused by nearby properties sharing geography and wildfire events |
-| Report multiple geographic scales | Prevents an overall AUC from being mistaken for neighborhood-level performance |
+| Programming | Python |
+| Data Processing | Pandas, NumPy |
+| Geospatial Analysis | GeoPandas |
+| Machine Learning | Scikit-learn, SciPy |
+| Visualization | Matplotlib, Plotly |
+| Development | Jupyter Notebook, VS Code |
+| Version Control | Git, GitHub |
 
-## Tools and libraries
-
-**Python**, pandas, NumPy, **GeoPandas**, Matplotlib, Plotly, SciPy, scikit-learn, spatial joins, CRS transformations, Census GEOIDs, ROC-AUC and grouped cross-validation.
-
-## Repository structure
+##  Repository Structure
 
 ```text
 wildfire-risk-geospatial-analysis/
 ├── README.md
 ├── requirements.txt
 ├── .gitignore
-└── notebooks/
-    └── wildfire_risk_analysis.ipynb
+├── Notebooks/
+│   └── Wildfire_Risk_Analysis.ipynb
+
 ```
 
-## Running the notebook
+##  How to Run
 
-1. Use a supported Python environment with Jupyter or VS Code's notebook extension.
-2. Install dependencies from the repository root:
+1. Clone the repository:
 
-   ```bash
-   python -m pip install -r requirements.txt
-   ```
+```bash
+git clone https://github.com/Maira-taimoor/wildfire-risk-geospatial-analysis.git
+```
 
-3. Obtain authorized local copies of the three input files referenced by the notebook:
-   - `wildfire_risk_data_set.xlsx`
-   - `census_tract_level_data_2020.csv`
-   - `cb_2020_us_tract_500k.zip`
-4. Set `DATA_DIR` in the notebook's setup cell to the directory containing those files.
-5. Restart the kernel and run the cells in order. Downloading MTBS perimeter data requires an internet connection.
+2. Navigate to the project folder:
 
-**Reproducibility:** The full analysis cannot run from the public repository alone because the supplied assessment datasets are excluded. Saved notebook outputs illustrate the workflow but should be reviewed for redistribution restrictions before publishing.
+```bash
+cd wildfire-risk-geospatial-analysis
+```
 
-## Further reading
+3. Install the required libraries:
 
-- [MTBS — Monitoring Trends in Burn Severity](https://www.mtbs.gov/)
-- [U.S. Census Bureau — 2020 Cartographic Boundary Files](https://www.census.gov/geographies/mapping-files/2020/geo/carto-boundary-file.html)
-- [scikit-learn — StratifiedGroupKFold](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedGroupKFold.html)
+```bash
+python -m pip install -r requirements.txt
+```
 
-## Author
+4. Obtain authorized copies of the required input datasets:
 
-**Maira Taimoor**  
-Data & Analytics Portfolio — Python, SQL, Geospatial Analysis, Machine Learning
+- `wildfire_risk_data_set.xlsx`
+- `census_tract_level_data_2020.csv`
+- `cb_2020_us_tract_500k.zip`
+
+5. Configure `DATA_DIR` in the notebook to point to the location of the input files.
+
+6. Open the notebook in Jupyter or VS Code and run the cells in sequence. MTBS data retrieval requires internet access.
+
+**Reproducibility note:** The full analysis cannot be executed from the public repository alone because restricted assessment datasets are excluded.
+
+##  Limitations
+
+- Wildfire perimeter intersection is an exposure proxy, not verified property damage.
+- The analysis covers a single wildfire season.
+- Positive cases are concentrated in a limited number of wildfire events and counties.
+- Census tract characteristics may not capture property-specific hazards.
+- Risk scores are ordinal rankings, not calibrated probabilities of damage.
+- Predictive performance may vary across locations and future wildfire seasons.
+
+##  Future Improvements
+
+- Evaluate additional wildfire seasons.
+- Incorporate verified property-damage outcomes where available.
+- Explore terrain, vegetation, and fuel characteristics.
+- Investigate wildland–urban interface proximity.
+- Evaluate alternative spatial validation strategies.
+
+##  Author
+
+**Maira Taimoor**
+
+Data & Analytics Portfolio
+
+**GitHub:** https://github.com/Maira-taimoor
+
+**Project Repository:** https://github.com/Maira-taimoor/wildfire-risk-geospatial-analysis
